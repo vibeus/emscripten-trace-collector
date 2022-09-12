@@ -1,6 +1,6 @@
 from trace_collector import events, json
 import csv
-import cStringIO
+from io import StringIO
 
 EVENT_ALLOCATE = 'allocate'
 EVENT_FREE = 'free'
@@ -53,13 +53,13 @@ class HeapView(object):
       if he:
         he.type = entry[2]
       else:
-        print 'NO ADDRESS MAPPING FOUND FOR %s TO ANNOTATE TYPE "%s"' % (entry[1], entry[2])
+        print('NO ADDRESS MAPPING FOUND FOR %s TO ANNOTATE TYPE "%s"' % (entry[1], entry[2]))
     elif entry[0] == events.ASSOCIATE_STORAGE_SIZE:
       he = self.entries_by_address.get(entry[1])
       if he:
         he.associated_storage_size = entry[2]
       else:
-        print 'NO ADDRESS MAPPING FOUND FOR %s TO ASSOCIATE STORAGE SIZE "%s"' % (entry[1], entry[2])
+        print('NO ADDRESS MAPPING FOUND FOR %s TO ASSOCIATE STORAGE SIZE "%s"' % (entry[1], entry[2]))
 
   def size_for_address(self, address):
     entry = self.entries_by_address.get(address)
@@ -102,9 +102,10 @@ class HeapView(object):
       d['average_bytes_live'] = avg(d['total_bytes_live'], d['count_live'])
       d['average_storage_size_all'] = avg(d['total_storage_size_all'], d['count_all'])
       d['average_storage_size_live'] = avg(d['total_storage_size_live'], d['count_live'])
-    types = type_data.values()
+    
     # Use negation to reverse the sort
-    types.sort(lambda x,y: cmp(-x['count_all'], -y['count_all']))
+    types = sorted(type_data.values(), key=lambda x: -x['count_all'])
+    
     if format == 'csv':
       csv_data = cStringIO.StringIO()
       fields = [
@@ -145,8 +146,8 @@ class HeapView(object):
       if not e.matching_event_id:
         d['count_live'] += 1
         d['bytes_live'] += e.size
-    sizes = size_data.values()
-    sizes.sort(lambda x,y: cmp(x['size'], y['size']))
+    sizes = sorted(size_data.values(), key=lambda x: x['size'])
+
     return sizes
 
   def heap_fragmentation_data(self):
@@ -154,7 +155,8 @@ class HeapView(object):
     holes = []
     lastAllocationEnd = 0
     if len(allocations) > 1:
-      allocations.sort(lambda x,y: cmp(x.address, y.address))
+      allocations = sorted(allocations, key=lambda x: x.address)
+
       lastAllocationEnd = allocations[0].address
       for allocation in allocations:
         allocationStart = allocation.address
@@ -174,8 +176,8 @@ class HeapView(object):
       })
       d['count'] += 1
       d['bytes'] += hole_size
-    holes = hole_data.values()
-    holes.sort(lambda x,y: cmp(x['size'], y['size']))
+    holes = sorted(hole_data.values(), key=lambda x: x['size'])
+
     return {
       'holes': holes,
       'fragmentation_percentage': (total_hole_size / float(lastAllocationEnd)) * 100,

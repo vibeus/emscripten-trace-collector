@@ -65,6 +65,9 @@ class Session(object):
       return
     self.entries.append(entry)
     ### Update context ###
+    if self.context is None:
+      self.context = ContextNode(None, 'Root', self)
+
     if entry[0] == events.ENTER_CONTEXT:
       self.context = self.context.get_child(entry[2], self)
       self.context.enter(entry[1])
@@ -84,7 +87,7 @@ class Session(object):
       self.currentFrame = None
     elif entry[0] == events.FRAME_START:
       if self.currentFrame is not None:
-        print 'self.currentFrame is not None!'
+        print('self.currentFrame is not None!')
         self.currentFrame.complete(entry[1])
         self.frames.append(self.currentFrame)
       self.currentFrame = SessionFrame(self.next_frame_id(), entry[1])
