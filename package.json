@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A server for collecting tracing data from emscripten-compiled applications including memory profiling information.",
   "scripts": {
+    "start": "python run-server.py",
     "prepare": "husky install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
